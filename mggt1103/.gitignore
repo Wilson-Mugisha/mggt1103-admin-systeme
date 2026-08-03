@@ -1,0 +1,24 @@
+cat > .gitignore << 'EOF'
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+.terraform.lock.hcl
+*.log
+
+# Providers
+terraform-provider-*
+
+# Vagrant box
+*.box
+
+# Debug
+debug.log
+terraform-debug.log
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
+
