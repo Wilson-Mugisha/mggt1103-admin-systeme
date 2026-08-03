@@ -1,29 +1,45 @@
-# 1. Configuration des exigences du provider VirtualBox
-terraform {
-  required_providers {
-    virtualbox = {
-      source  = "shekeriev/virtualbox"
-      version = "0.0.4"
-    }
+variable "vboxmanage" {
+  default = "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+}
+
+variable "vm_name" {
+  default = "Serveur-Automatique-GGT"
+}
+
+variable "source_vm" {
+  default = "VM-Ubuntu-Mggt1103"
+}
+
+resource "null_resource" "srv_ggt_vm" {
+
+  triggers = {
+    vm_name = var.vm_name
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -e
+      VBM="${var.vboxmanage}"
+      "$VBM" clonevm "${var.source_vm}" --name "${var.vm_name}" --register
+      "$VBM" discardstate "${var.vm_name}" || true
+      "$VBM" modifyvm "${var.vm_name}" --cpus 1 --memory 1024
+      "$VBM" modifyvm "${var.vm_name}" --nic1 hostonly --hostonlyadapter1 "VirtualBox Host-Only Ethernet Adapter"
+      "$VBM" startvm "${var.vm_name}" --type headless
+    EOT
+    interpreter = ["bash", "-c"]
+  }
+
+  provisioner "local-exec" {
+    when = destroy
+    command = <<-EOT
+      "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe" controlvm "${self.triggers.vm_name}" poweroff || true
+      sleep 3
+      "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe" unregistervm "${self.triggers.vm_name}" --delete || true
+    EOT
+    interpreter = ["bash", "-c"]
   }
 }
 
-# 2. Configuration de la connexion à l'API de l'hôte Windows
-provider "virtualbox" {
-  delay      = 60
-  mintimeout = 5
-}
-
-# 3. Déclaration de notre machine virtuelle d'infrastructure
-resource "virtualbox_vm" "srv_ggt_vm" {
-  name   = "Serveur-Automatique-GGT"
-  image  = "https://vagrantcloud.com/ubuntu/boxes/jammy64/versions/20230616.0.0/providers/virtualbox.box)"
-  cpus   = 1
-  memory = "1024 mib" # 1 Go de RAM alloué
-
-  # Configuration du réseau de la VM
-  network_adapter {
-    type           = "hostonly" # Réseau privé hôte
-    host_interface = "VirtualBox Host-Only Ethernet Adapter"
-  }
+output "vm_status" {
+  value = "VM deployee et demarree automatiquement via Terraform (local-exec + VBoxManage)."
 }
