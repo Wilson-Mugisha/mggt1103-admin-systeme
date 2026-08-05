@@ -1,0 +1,16 @@
+---
+- name: Test de lecture de donnees chiffrees par Vault
+  hosts: serveurs_web
+  become: false
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Simuler l ecriture du mot de passe dans un fichier de conf protege
+      copy:
+        content: "DB_PASSWORD = {{ db_root_password }}"
+        dest: /root/db_config.conf
+        owner: root
+        group: root
+        mode: '0600'
