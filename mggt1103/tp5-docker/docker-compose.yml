@@ -1,0 +1,33 @@
+
+services:
+  api-web:
+    build: .
+    container_name: ggt-api
+    ports:
+      - "8080:5000"
+    environment:
+      - DB_USER=admin_ggt
+      - DB_PASS=M0tDePasseSecret!
+    networks:
+      - reseau-interne
+    depends_on:
+      - base-donnees
+
+  base-donnees:
+    image: postgres:15-alpine
+    container_name: ggt-database
+    environment:
+      - POSTGRES_USER=admin_ggt
+      - POSTGRES_PASSWORD=M0tDePasseSecret!
+      - POSTGRES_DB=telecom_db
+    volumes:
+      - volume-bdd:/var/lib/postgresql/data
+    networks:
+      - reseau-interne
+
+volumes:
+  volume-bdd:
+
+networks:
+  reseau-interne:
+    driver: bridge
