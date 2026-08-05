@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: serveur-web-app
+  labels:
+    app: site-ggt
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: site-ggt
+  template:
+    metadata:
+      labels:
+        app: site-ggt
+    spec:
+      containers:
+      - name: serveur-nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
